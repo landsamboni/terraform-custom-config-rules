@@ -1,0 +1,35 @@
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform/*
+
+# Infracost
+.infracost
+
+# Local TF files
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*.override.tf
+*.override.tf.json
+.terraformrc
+.terraform.rc
+
+# MacOS
+.DS_Store
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+
+# Terraform plan files
+*.tfplan
+
+# Ignorar archivos de salida de errores
+errored.tfstate
+
+# Archivos de configuración de Terraform locales
+.terraform.lock.hcl
