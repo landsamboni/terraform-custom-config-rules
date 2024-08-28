@@ -7,11 +7,11 @@ resource "kubernetes_config_map" "nginx_config" {
 
   data = {
 
-    "app.conf"      = file("${path.module}/nginx-config-files/app.conf")
-    "booking.conf"  = file("${path.module}/nginx-config-files/booking.conf")
-    "cms.conf"      = file("${path.module}/nginx-config-files/cms.conf")
-    "hertzb2b.conf" = file("${path.module}/nginx-config-files/hertzb2b.conf")
-    #"members.conf"              = file("${path.module}/nginx-config-files/members.conf")
+    "app.conf"                  = file("${path.module}/nginx-config-files/app.conf")
+    "booking.conf"              = file("${path.module}/nginx-config-files/booking.conf")
+    "cms.conf"                  = file("${path.module}/nginx-config-files/cms.conf")
+    "hertzb2b.conf"             = file("${path.module}/nginx-config-files/hertzb2b.conf")
+    "members.conf"              = file("${path.module}/nginx-config-files/members.conf")
     "notificationssupport.conf" = file("${path.module}/nginx-config-files/notificationssupport.conf")
     "policies.conf"             = file("${path.module}/nginx-config-files/policies.conf")
     "rules.conf"                = file("${path.module}/nginx-config-files/rules.conf")
