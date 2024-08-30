@@ -17,6 +17,7 @@ resource "kubernetes_config_map" "nginx_config" {
     "rules.conf"                = file("${path.module}/nginx-config-files/rules.conf")
     "searchengine.conf"         = file("${path.module}/nginx-config-files/searchengine.conf")
     "searchenginehotels.conf"   = file("${path.module}/nginx-config-files/searchenginehotels.conf")
+    "cmsaws.conf"               = file("${path.module}/nginx-config-files/cmsaws.conf")
 
 
   }
@@ -45,9 +46,16 @@ resource "kubernetes_deployment" "nginx" {
       }
 
       spec {
+        node_selector = {
+          "eks.amazonaws.com/nodegroup" = "bts-app-node-group"
+        }
+
+
+
         container {
           name  = "nginx"
           image = "nginx:latest"
+
 
           volume_mount {
             name       = "nginx-config-volume"
@@ -104,7 +112,7 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
       "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"     = "ip"
       "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\": 80}, {\"HTTPS\":443}]"
-      "alb.ingress.kubernetes.io/certificate-arn" = "arn:aws:acm:us-east-1:637423610894:certificate/ab5f2101-f619-4dfb-8828-3b7edda769d7"
+      "alb.ingress.kubernetes.io/certificate-arn" = "arn:aws:acm:us-east-1:637423610894:certificate/cae6da42-8ceb-4d0d-a41b-03ed24d4ddb3"
       "alb.ingress.kubernetes.io/ssl-policy"      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
       "alb.ingress.kubernetes.io/waf-acl-id"      = "arn:aws:wafv2:us-east-1:637423610894:regional/webacl/viajemos-dev-waf-acl/7531e5a7-a559-46dd-8268-5d7580d7c6cc"
     }
