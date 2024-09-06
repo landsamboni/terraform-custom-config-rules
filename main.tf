@@ -140,3 +140,45 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
     }
   }
 }
+
+
+resource "kubernetes_ingress_v1" "grafana_ingress" {
+  metadata {
+    name      = "grafana-ingress"
+    namespace = "prometheus"
+    annotations = {
+      "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type"     = "ip"
+      "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\": 80}, {\"HTTPS\":443}]"
+      "alb.ingress.kubernetes.io/certificate-arn" = "arn:aws:acm:us-east-1:637423610894:certificate/629f27f6-d34c-4702-b492-09737f3a8c6c"
+      "alb.ingress.kubernetes.io/ssl-policy"      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+      # TargetGroup Healthcheck configuration:
+      "alb.ingress.kubernetes.io/healthcheck-path" = "/login"
+      "alb.ingress.kubernetes.io/healthcheck-port" = "traffic-port"
+      "alb.ingress.kubernetes.io/success-codes"    = "200-399"
+
+    }
+  }
+
+  spec {
+    ingress_class_name = "alb"
+
+    rule {
+      http {
+        path {
+          path      = "/grafana"
+          path_type = "Prefix"
+
+          backend {
+            service {
+              name = "grafana"
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
