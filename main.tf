@@ -7,20 +7,17 @@ resource "kubernetes_config_map" "nginx_config" {
 
   data = {
 
-    "app.conf"                  = file("${path.module}/nginx-config-files/app.conf")
-    "booking.conf"              = file("${path.module}/nginx-config-files/booking.conf")
-    "cms.conf"                  = file("${path.module}/nginx-config-files/cms.conf")
-    "hertzb2b.conf"             = file("${path.module}/nginx-config-files/hertzb2b.conf")
-    "members.conf"              = file("${path.module}/nginx-config-files/members.conf")
-    "notificationssupport.conf" = file("${path.module}/nginx-config-files/notificationssupport.conf")
-    "policies.conf"             = file("${path.module}/nginx-config-files/policies.conf")
-    "rules.conf"                = file("${path.module}/nginx-config-files/rules.conf")
-    "searchengine.conf"         = file("${path.module}/nginx-config-files/searchengine.conf")
-    "searchenginehotels.conf"   = file("${path.module}/nginx-config-files/searchenginehotels.conf")
-    "cmsaws.conf"               = file("${path.module}/nginx-config-files/cmsaws.conf")
-
-    # configuraciones adicionales
-
+    "app.conf"      = file("${path.module}/nginx-config-files/app.conf")
+    "booking.conf"  = file("${path.module}/nginx-config-files/booking.conf")
+    "cms.conf"      = file("${path.module}/nginx-config-files/cms.conf")
+    "hertzb2b.conf" = file("${path.module}/nginx-config-files/hertzb2b.conf")
+    "members.conf"  = file("${path.module}/nginx-config-files/members.conf")
+    #"notificationssupport.conf" = file("${path.module}/nginx-config-files/notificationssupport.conf")
+    "policies.conf"               = file("${path.module}/nginx-config-files/policies.conf")
+    "rules.conf"                  = file("${path.module}/nginx-config-files/rules.conf")
+    "searchengine.conf"           = file("${path.module}/nginx-config-files/searchengine.conf")
+    "searchenginehotels.conf"     = file("${path.module}/nginx-config-files/searchenginehotels.conf")
+    "cmsaws.conf"                 = file("${path.module}/nginx-config-files/cmsaws.conf")
     "app-miles.conf"              = file("${path.module}/nginx-config-files/app-miles.conf")
     "app-vjs-argentina.conf"      = file("${path.module}/nginx-config-files/app-vjs-argentina.conf")
     "app-vjs-bolivia.conf"        = file("${path.module}/nginx-config-files/app-vjs-bolivia.conf")
@@ -48,6 +45,8 @@ resource "kubernetes_config_map" "nginx_config" {
     "leads.conf"                  = file("${path.module}/nginx-config-files/leads.conf")
     "requests.conf"               = file("${path.module}/nginx-config-files/requests.conf")
     "unfinish.conf"               = file("${path.module}/nginx-config-files/unfinish.conf")
+    "crm.conf"                    = file("${path.module}/nginx-config-files/crm.conf")
+
   }
 }
 
@@ -170,7 +169,8 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
 }
 
 
-resource "kubernetes_ingress_v1" "grafana_ingress" {
+# Se eliminó el ALB para Grafana debido a que Viajemos solicitó eliminar los pods de monitoreo, ya que van a usar DataDog
+/* resource "kubernetes_ingress_v1" "grafana_ingress" {
   metadata {
     name      = "grafana-ingress"
     namespace = "prometheus"
@@ -209,5 +209,5 @@ resource "kubernetes_ingress_v1" "grafana_ingress" {
       }
     }
   }
-}
+} */
 
