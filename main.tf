@@ -50,6 +50,8 @@ resource "kubernetes_config_map" "nginx_config" {
   }
 }
 
+# deployment del servidor NGINX
+
 resource "kubernetes_deployment" "nginx" {
   metadata {
     name      = "nginx-deployment"
@@ -139,11 +141,12 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
       "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"     = "ip"
       "alb.ingress.kubernetes.io/listen-ports"    = "[{\"HTTP\": 80}, {\"HTTPS\":443}]"
-      "alb.ingress.kubernetes.io/certificate-arn" = "arn:aws:acm:us-east-1:637423610894:certificate/cae6da42-8ceb-4d0d-a41b-03ed24d4ddb3"
+      "alb.ingress.kubernetes.io/certificate-arn" = "arn:aws:acm:us-east-1:637423610894:certificate/cae6da42-8ceb-4d0d-a41b-03ed24d4ddb3" # Certificado creado manualmente en la cuenta DEV
       "alb.ingress.kubernetes.io/ssl-policy"      = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-      "alb.ingress.kubernetes.io/waf-acl-id"      = "arn:aws:wafv2:us-east-1:637423610894:regional/webacl/viajemos-dev-waf-acl/7531e5a7-a559-46dd-8268-5d7580d7c6cc"
+      "alb.ingress.kubernetes.io/waf-acl-id"      = "arn:aws:wafv2:us-east-1:637423610894:regional/webacl/viajemos-dev-waf-acl/7531e5a7-a559-46dd-8268-5d7580d7c6cc" # Asociacion del WAF.
     }
   }
+
 
   spec {
     ingress_class_name = "alb"
@@ -167,6 +170,8 @@ resource "kubernetes_ingress_v1" "nginx_ingress" {
     }
   }
 }
+
+
 
 
 # Se eliminó el ALB para Grafana debido a que Viajemos solicitó eliminar los pods de monitoreo, ya que van a usar DataDog
