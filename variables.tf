@@ -5,8 +5,3 @@ variable "region" {
 
 }
 
-variable "cluster_name" {
-  description = "Nombre del clúster EKS"
-  type        = string
-  default     = "viajemos-dev-eks-cluster"
-}
