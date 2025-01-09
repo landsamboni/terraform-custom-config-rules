@@ -1,0 +1,14 @@
+{
+  "Version": "1.0",
+  "Parameters": {
+    "RuleName": "dua-lipa-rule",
+    "Description": "dua-lipa-rule",
+    "SourceRuntime": "python3.9",
+    "EvaluationMode": "DETECTIVE",
+    "CodeKey": "dua-lipa-ruleus-east-1.zip",
+    "InputParameters": "{\"desiredInstanceType\": \"t2.micro\"}",
+    "OptionalParameters": "{}",
+    "SourceEvents": "AWS::EC2::Instance"
+  },
+  "Tags": "[]"
+}
