@@ -115,7 +115,7 @@ module "lambda_module_iam" {
 }
 
 resource "aws_config_config_rule" "iam_validation_rule" {
-  name        = "existing-iam-users"
+  name        = "existing-iam-users-2"
   description = "Checks for existing IAM users in the account."
 
   source {
@@ -126,10 +126,6 @@ resource "aws_config_config_rule" "iam_validation_rule" {
       event_source = "aws.config"
       message_type = "ConfigurationItemChangeNotification"
     }
-  }
-
-  scope {
-    compliance_resource_types = ["AWS::IAM::User"]
   }
 
   depends_on = [
