@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------ */
-/*                            RULE 1
+/*                            RULE 1 - EC2 TAGS
 /* ------------------------------------------------------------ */
 
 data "archive_file" "lambda_ec2_tags_package" {
@@ -48,7 +48,7 @@ resource "aws_config_config_rule" "custom_rule" {
 
 
 /* ------------------------------------------------------------ */
-/*                            RULE 2
+/*                    RULE 2 - S3 VERSIONING VALIDATION
 /* ------------------------------------------------------------ */
 
 
@@ -95,12 +95,12 @@ resource "aws_config_config_rule" "custom_rule_2" {
 
 
 /* ------------------------------------------------------------ */
-/*                            RULE 3
+/*                     RULE 3 - IAM USERS
 /* ------------------------------------------------------------ */
 
 data "archive_file" "lambda_s3_versioning_package" {
   type        = "zip"
-  source_file = "${path.module}/lambda-codes/lambda-iam-validation.py"
+  source_file = "./lambda-codes/lambda-iam-validation.py"
   output_path = "${path.module}/lambda-codes/lambda-iam-validation.zip"
 }
 
@@ -116,7 +116,7 @@ module "lambda_module_iam" {
 
 resource "aws_config_config_rule" "iam_validation_rule" {
   name        = "existing-iam-users"
-  description = "Validar si existen usuarios IAM en la cuenta."
+  description = "Checks for existing IAM users in the account."
 
   source {
     owner             = "CUSTOM_LAMBDA"
@@ -136,3 +136,4 @@ resource "aws_config_config_rule" "iam_validation_rule" {
     module.lambda_module_iam
   ]
 }
+

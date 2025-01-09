@@ -5,3 +5,8 @@ variable "region" {
 }
 
 
+variable "securityhub_enable" {
+  description = "Enable Security Hub in the account"
+  type        = bool
+  default     = true
+}
