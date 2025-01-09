@@ -2,7 +2,7 @@ import json
 import logging
 import boto3
 
-# Configuración básica de logging
+# Basic logging configuration
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -10,7 +10,7 @@ client = boto3.client('config')
 s3_client = boto3.client('s3')
 
 def lambda_handler(event, context):
-    logger.info("Evento recibido: %s", json.dumps(event))
+    logger.info("Event received: %s", json.dumps(event))
     evaluations = []
 
     try:
@@ -18,11 +18,11 @@ def lambda_handler(event, context):
         configuration_item = invoking_event.get('configurationItem')
 
         if not configuration_item:
-            logger.info("El evento no contiene configurationItem.")
+            logger.info("The event does not contain a configurationItem.")
             return build_response(evaluations, event)
 
         if configuration_item['resourceType'] != 'AWS::S3::Bucket':
-            logger.info("Recurso no aplicable: %s", configuration_item['resourceType'])
+            logger.info("Resource not applicable: %s", configuration_item['resourceType'])
             return build_response(evaluations, event)
 
         bucket_name = configuration_item['resourceId']
@@ -33,17 +33,17 @@ def lambda_handler(event, context):
 
             if versioning_status == 'Enabled':
                 compliance_type = "COMPLIANT"
-                annotation = "El versioning está habilitado."
+                annotation = "Versioning is enabled."
             else:
                 compliance_type = "NON_COMPLIANT"
-                annotation = "El versioning no está habilitado."
+                annotation = "Versioning is not enabled."
 
         except Exception as e:
             compliance_type = "NON_COMPLIANT"
-            annotation = f"Error al verificar el versioning: {str(e)}"
-            logger.error("Error al obtener el estado de versioning: %s", str(e))
+            annotation = f"Error verifying versioning: {str(e)}"
+            logger.error("Error fetching versioning status: %s", str(e))
 
-        # Truncar anotación si es demasiado larga
+        # Truncate annotation if it's too long
         if len(annotation) > 256:
             annotation = annotation[:253] + "..."
 
@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         })
 
     except Exception as e:
-        logger.error("Error al procesar el evento: %s", str(e))
+        logger.error("Error processing the event: %s", str(e))
 
     return build_response(evaluations, event)
 
@@ -67,9 +67,9 @@ def build_response(evaluations, event):
             Evaluations=evaluations,
             ResultToken=result_token
         )
-        logger.info("Respuesta de put_evaluations: %s", json.dumps(response))
+        logger.info("put_evaluations response: %s", json.dumps(response))
     except Exception as e:
-        logger.error("Error al enviar evaluaciones: %s", str(e))
+        logger.error("Error sending evaluations: %s", str(e))
     return {
         'Evaluations': evaluations
     }
