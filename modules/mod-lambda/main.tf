@@ -15,9 +15,29 @@ resource "aws_iam_role" "lambda_role" {
     ]
   })
 
+
+  inline_policy {
+    name = "securityhub-reporting"
+    policy = jsonencode({
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Sid" : "AllowBatchImportFindings",
+          "Effect" : "Allow",
+          "Action" : [
+            "securityhub:BatchImportFindings",
+            "securityhub:BatchUpdateFindings"
+          ],
+          "Resource" : "*"
+        }
+      ]
+    })
+  }
+
+
   # Incluir directamente la política compartida
   inline_policy {
-    name = "shared-lambda-policy"
+    name = "logs-and-configputevaluations-inline-policy"
     policy = jsonencode({
       Version = "2012-10-17",
       Statement = [

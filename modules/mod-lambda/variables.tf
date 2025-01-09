@@ -13,11 +13,6 @@ variable "runtime" {
   type        = string
 }
 
-/* variable "source_code" {
-  description = "Ruta al archivo ZIP con el código fuente de la Lambda."
-  type        = string
-} */
-
 variable "memory_size" {
   description = "Cantidad de memoria asignada a la Lambda en MB."
   type        = number
