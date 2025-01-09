@@ -52,7 +52,7 @@ resource "aws_config_config_rule" "custom_rule" {
 /* ------------------------------------------------------------ */
 
 
-data "archive_file" "lambda_iam_validation_package" {
+data "archive_file" "lambda_s3_versioning_package" {
   type        = "zip"
   source_file = "./lambda-codes/lambda-s3-versioning.py"
   output_path = "${path.root}/lambda-codes/lambda-s3-versioning.zip"
@@ -98,10 +98,10 @@ resource "aws_config_config_rule" "custom_rule_2" {
 /*                     RULE 3 - IAM USERS
 /* ------------------------------------------------------------ */
 
-data "archive_file" "lambda_s3_versioning_package" {
+data "archive_file" "lambda_iam_validation_package" {
   type        = "zip"
   source_file = "./lambda-codes/lambda-iam-validation.py"
-  output_path = "${path.module}/lambda-codes/lambda-iam-validation.zip"
+  output_path = "${path.root}/lambda-codes/lambda-iam-validation.zip"
 }
 
 module "lambda_module_iam" {
