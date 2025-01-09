@@ -1,99 +1,31 @@
+/* ------------------------------------------------------------ */
+/*                            RULE 1
+/* ------------------------------------------------------------ */
 
-# Crear un rol de IAM para la función Lambda
-resource "aws_iam_role" "lambda_role" {
-  name = "config_custom_rule_lambda_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
+data "archive_file" "lambda_ec2_tags_package" {
+  type        = "zip"
+  source_file = "./lambda-codes/lambda-ec2-tags.py"
+  output_path = "${path.root}/lambda-codes/lambda-ec2-tags.zip"
 }
 
-# Crear una política personalizada para la Lambda
-resource "aws_iam_role_policy" "lambda_policy" {
-  name = "${aws_lambda_function.custom_rule_function.function_name}-policy"
-  role = aws_iam_role.lambda_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid : "WriteCloudWatchLogs",
-        Action : [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams"
-        ],
-        Resource = "arn:aws:logs:*:*:log-group:/aws/lambda/*",
-        Effect   = "Allow"
-      },
-      {
-        Sid : "PutConfigEvaluations",
-        Action : [
-          "config:PutEvaluations"
-        ],
-        Resource = "*",
-        Effect   = "Allow"
-      },
-      {
-        Sid : "ReadIamResources",
-        Action : [
-          "iam:List*",
-          "iam:Get*"
-        ],
-        Resource = "*",
-        Effect   = "Allow"
-      },
-      {
-        Sid : "AllowRoleAssumption",
-        Action : [
-          "sts:AssumeRole"
-        ],
-        Resource = "*",
-        Effect   = "Allow"
-      }
-    ]
-  })
-}
-
-# Crear la función Lambda
-resource "aws_lambda_function" "custom_rule_function" {
-  function_name = "lambda-config-rule"
-  role          = aws_iam_role.lambda_role.arn
-  handler       = "lambda_function.lambda_handler"
+module "lambda-ec2-tags" {
+  source        = "./modules/mod-lambda"
+  function_name = "lambda-ec2-tags"
+  handler       = "lambda-ec2-tags.lambda_handler"
   runtime       = "python3.9"
-  timeout       = 10
   memory_size   = 128
-
-  filename         = "${path.module}/lambda.zip"
-  source_code_hash = filebase64sha256("${path.module}/lambda.zip")
+  timeout       = 10
+  source_zip    = "${path.root}/lambda-codes/lambda-ec2-tags.zip"
 }
 
-# Permitir que AWS Config invoque la Lambda
-resource "aws_lambda_permission" "allow_config_invoke" {
-  statement_id  = "AllowInvokeByConfig"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.custom_rule_function.arn
-  principal     = "config.amazonaws.com"
-}
-
-# Crear la regla personalizada de AWS Config
 resource "aws_config_config_rule" "custom_rule" {
-  name        = "batichica-rule"
-  description = "Validar que las instancias EC2 tengan etiquetas específicas."
+  name        = "ec2-tags"
+  description = "Checks for specific EC2 Instance tags"
 
   source {
     owner             = "CUSTOM_LAMBDA"
-    source_identifier = aws_lambda_function.custom_rule_function.arn
+    source_identifier = module.lambda-ec2-tags.lambda_arn
+
 
     source_detail {
       event_source = "aws.config"
@@ -106,11 +38,101 @@ resource "aws_config_config_rule" "custom_rule" {
   }
 
   input_parameters = jsonencode({
-    RequiredTags = ["Environment", "Owner"]
+    RequiredTags = ["Environment", "Owner", "Name"]
+
   })
 
+}
+
+
+
+
+/* ------------------------------------------------------------ */
+/*                            RULE 2
+/* ------------------------------------------------------------ */
+
+
+data "archive_file" "lambda_iam_validation_package" {
+  type        = "zip"
+  source_file = "./lambda-codes/lambda-s3-versioning.py"
+  output_path = "${path.root}/lambda-codes/lambda-s3-versioning.zip"
+}
+
+module "lambda_module_2" {
+  source        = "./modules/mod-lambda"
+  function_name = "lambda-s3-versioning-enabled"
+  handler       = "lambda-s3-versioning.lambda_handler"
+  runtime       = "python3.9"
+  memory_size   = 128
+  timeout       = 10
+  source_zip    = "${path.root}/lambda-codes/lambda-s3-versioning.zip"
+}
+
+
+resource "aws_config_config_rule" "custom_rule_2" {
+  name        = "s3-versioning-enabled"
+  description = "Checks if Buckets have versioning enabled"
+
+  source {
+    owner             = "CUSTOM_LAMBDA"
+    source_identifier = module.lambda_module_2.lambda_arn
+
+    source_detail {
+      event_source = "aws.config"
+      message_type = "ConfigurationItemChangeNotification"
+    }
+  }
+
+  scope {
+    compliance_resource_types = ["AWS::S3::Bucket"]
+  }
+
+  /* input_parameters = jsonencode({
+  BucketPrefix = "prod-"  # Opcional, personaliza si lo necesitas
+}) */
+
+}
+
+
+/* ------------------------------------------------------------ */
+/*                            RULE 3
+/* ------------------------------------------------------------ */
+
+data "archive_file" "lambda_s3_versioning_package" {
+  type        = "zip"
+  source_file = "${path.module}/lambda-codes/lambda-iam-validation.py"
+  output_path = "${path.module}/lambda-codes/lambda-iam-validation.zip"
+}
+
+module "lambda_module_iam" {
+  source        = "./modules/mod-lambda"
+  function_name = "lambda-existing-iam-users"
+  handler       = "lambda-iam-validation.lambda_handler"
+  runtime       = "python3.9"
+  memory_size   = 128
+  timeout       = 10
+  source_zip    = "${path.root}/lambda-codes/lambda-iam-validation.zip"
+}
+
+resource "aws_config_config_rule" "iam_validation_rule" {
+  name        = "existing-iam-users"
+  description = "Validar si existen usuarios IAM en la cuenta."
+
+  source {
+    owner             = "CUSTOM_LAMBDA"
+    source_identifier = module.lambda_module_iam.lambda_arn
+
+    source_detail {
+      event_source = "aws.config"
+      message_type = "ConfigurationItemChangeNotification"
+    }
+  }
+
+  scope {
+    compliance_resource_types = ["AWS::IAM::User"]
+  }
+
   depends_on = [
-    aws_lambda_permission.allow_config_invoke,
-    aws_lambda_function.custom_rule_function
+    module.lambda_module_iam
   ]
 }

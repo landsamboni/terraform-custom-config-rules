@@ -7,60 +7,60 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 client = boto3.client('config')
+s3_client = boto3.client('s3')
 
 def lambda_handler(event, context):
     logger.info("Evento recibido: %s", json.dumps(event))
     evaluations = []
 
     try:
-        # Parsear el evento para obtener el elemento de configuración
         invoking_event = json.loads(event['invokingEvent'])
-        logger.info("Evento invocado: %s", json.dumps(invoking_event))
-
         configuration_item = invoking_event.get('configurationItem')
+
         if not configuration_item:
             logger.info("El evento no contiene configurationItem.")
             return build_response(evaluations, event)
 
-        # Verificar si el recurso es aplicable
-        if configuration_item['resourceType'] != 'AWS::EC2::Instance':
+        if configuration_item['resourceType'] != 'AWS::S3::Bucket':
             logger.info("Recurso no aplicable: %s", configuration_item['resourceType'])
             return build_response(evaluations, event)
 
-        # Validar si los tags requeridos existen
-        required_tags = ["Environment", "Owner"]
-        tags = configuration_item.get('tags', {})
-        missing_tags = [tag for tag in required_tags if tag not in tags]
+        bucket_name = configuration_item['resourceId']
 
-        if missing_tags:
+        try:
+            response = s3_client.get_bucket_versioning(Bucket=bucket_name)
+            versioning_status = response.get('Status', 'Disabled')
+
+            if versioning_status == 'Enabled':
+                compliance_type = "COMPLIANT"
+                annotation = "El versioning está habilitado."
+            else:
+                compliance_type = "NON_COMPLIANT"
+                annotation = "El versioning no está habilitado."
+
+        except Exception as e:
             compliance_type = "NON_COMPLIANT"
-            annotation = f"Faltan los siguientes tags: {', '.join(missing_tags)}"
-        else:
-            compliance_type = "COMPLIANT"
-            annotation = "Todos los tags requeridos están presentes."
+            annotation = f"Error al verificar el versioning: {str(e)}"
+            logger.error("Error al obtener el estado de versioning: %s", str(e))
 
-        # Crear evaluación
+        # Truncar anotación si es demasiado larga
+        if len(annotation) > 256:
+            annotation = annotation[:253] + "..."
+
         evaluations.append({
             "ComplianceResourceType": configuration_item['resourceType'],
-            "ComplianceResourceId": configuration_item['resourceId'],
+            "ComplianceResourceId": bucket_name,
             "ComplianceType": compliance_type,
             "OrderingTimestamp": configuration_item['configurationItemCaptureTime'],
             "Annotation": annotation
         })
 
-        logger.info("Evaluaciones generadas: %s", json.dumps(evaluations))
-
     except Exception as e:
         logger.error("Error al procesar el evento: %s", str(e))
 
-    # Enviar las evaluaciones a AWS Config
     return build_response(evaluations, event)
 
-
 def build_response(evaluations, event):
-    """
-    Enviar evaluaciones a AWS Config utilizando put_evaluations.
-    """
     result_token = event['resultToken']
     try:
         response = client.put_evaluations(
