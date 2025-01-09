@@ -19,7 +19,7 @@ resource "aws_iam_role" "lambda_role" {
 
 # Crear una política personalizada para la Lambda
 resource "aws_iam_role_policy" "lambda_policy" {
-  name = "custom_lambda_policy_model"
+  name = "${aws_lambda_function.custom_rule_function.function_name}-policy"
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
@@ -33,7 +33,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "logs:PutLogEvents",
           "logs:DescribeLogStreams"
         ],
-        Resource = "arn:aws:logs:*:*:log-group:/aws/lambda/RDK-Rule-Function*",
+        Resource = "arn:aws:logs:*:*:log-group:/aws/lambda/*",
         Effect   = "Allow"
       },
       {
@@ -65,20 +65,9 @@ resource "aws_iam_role_policy" "lambda_policy" {
   })
 }
 
-# Adjuntar políticas administradas al rol de IAM
-resource "aws_iam_role_policy_attachment" "config_rules_execution_role_policy" {
-  role       = aws_iam_role.lambda_role.id
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSConfigRulesExecutionRole"
-}
-
-resource "aws_iam_role_policy_attachment" "readonly_access_policy" {
-  role       = aws_iam_role.lambda_role.id
-  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
-}
-
 # Crear la función Lambda
 resource "aws_lambda_function" "custom_rule_function" {
-  function_name = "superman-config-rule"
+  function_name = "lambda-config-rule"
   role          = aws_iam_role.lambda_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.9"
@@ -99,7 +88,7 @@ resource "aws_lambda_permission" "allow_config_invoke" {
 
 # Crear la regla personalizada de AWS Config
 resource "aws_config_config_rule" "custom_rule" {
-  name        = "superman-config-rule"
+  name        = "batichica-rule"
   description = "Validar que las instancias EC2 tengan etiquetas específicas."
 
   source {
