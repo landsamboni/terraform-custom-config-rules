@@ -1,4 +1,3 @@
-# Crear un rol de IAM para la función Lambda
 resource "aws_iam_role" "lambda_role" {
   name = "${var.function_name}-role"
 
@@ -35,7 +34,7 @@ resource "aws_iam_role" "lambda_role" {
   }
 
 
-  # Incluir directamente la política compartida
+
   inline_policy {
     name = "logs-and-configputevaluations-inline-policy"
     policy = jsonencode({
@@ -80,8 +79,6 @@ resource "aws_iam_role_policy_attachment" "readonly_access_policy" {
 }
 
 
-
-# Crear la función Lambda
 resource "aws_lambda_function" "lambda" {
   function_name    = var.function_name
   role             = aws_iam_role.lambda_role.arn
@@ -93,7 +90,7 @@ resource "aws_lambda_function" "lambda" {
   source_code_hash = filebase64sha256(var.source_zip)
 }
 
-# Permitir que AWS Config invoque la Lambda, con statement_id dinámico
+
 resource "aws_lambda_permission" "allow_config_invoke" {
   statement_id  = "${var.function_name}-AllowInvokeByConfig"
   action        = "lambda:InvokeFunction"

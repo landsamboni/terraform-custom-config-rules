@@ -115,7 +115,7 @@ module "lambda_module_iam" {
 }
 
 resource "aws_config_config_rule" "iam_validation_rule" {
-  name        = "existing-iam-users-2"
+  name        = "existing-iam-users"
   description = "Checks for existing IAM users in the account."
 
   source {
